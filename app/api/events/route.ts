@@ -31,11 +31,16 @@ export async function POST (req: NextRequest, res: NextResponse) {
                 resolve(result);
             }).end(buffer);
         })
-
         
+        let tags = JSON.parse(formData.get('tags') as string);
+        let agenda = JSON.parse(formData.get('agenda') as string);
         event.image = (uploadResult as {secure_url: string}).secure_url;
 
-        const createEvent = await Event.create(event);
+        const createEvent = await Event.create({
+            ...event,
+            tags:tags,
+            agenda:agenda
+        });
         return NextResponse.json({ message: "Event created successfully", event: createEvent }, { status: 201 });
     } catch (error) {
         console.error("Error creating booking:", error);
@@ -48,7 +53,7 @@ export async function POST (req: NextRequest, res: NextResponse) {
 export async function GET (req: NextRequest, res: NextResponse) {
     try {
         await connectDB();
-        const events = await Event.find().sort({ createdAt: -1 });
+        const events = await Event.find().sort({ createdAt: -1 }).lean();
         return NextResponse.json({ messages:"Events fetched successfully", events }, { status: 200 });
     } catch (error) {
         console.error("Error fetching events:", error);
